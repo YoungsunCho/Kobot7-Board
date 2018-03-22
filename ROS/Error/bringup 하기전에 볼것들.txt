@@ -1,0 +1,153 @@
+1. remote PC에서 아두이노 IDE를 통해서 turtle_core.io 파일을 OpenCR 보드에 업로드 한다.
+
+	- 이 파일이 있을 때만 bringup이 정상 작동한다.
+
+2. turtle_core 파일이 opencr보드에 정상적으로 업로드 되면 
+	opencr 보드의 switch1과 switch2를 1초정도 꾹 눌렀을 때 모터가 동작 된다. (회전 , 직진)
+
+	이 과정까지 됐다면 opencr보드에 펌웨어(아두이노 스크래치 파일)는 완벽하게 업로드된 상태이다.
+
+지금 부터가 중요하다
+이거 잘못하면 백날 삽질만 한다.
+
+3. 무조건!!!!!!!!!!!!! opencr보드의 전원 스위치를 먼저 켜야 한다.
+	라즈베리파이에 전원을 연결하고 opencr보드의 전원 스위치를 켜면 통신은 되지만(정보는 넘어가지만) , 모터가 돌아가지 않는다.
+
+	따라서 무조건 opencr보드의 전원 스위치를 먼저 키자.
+
+4. 위의 과정이 모두 끝나면
+
+remote PC에
+$ roscore
+$ roslaunch turtlebot3_teleop turtlebot3_teleop_key.launch 
+
+를 입력한다.
+
+$ roslaunch turtlebot3_bringup turtlebot3_robot.launch
+
+를 입력한다.
+
+
+이러고 꼭 라즈베리파이와 opencr보드를 연결안하는 경우가 있는데
+꼭 usb 케이블 연결하자
+
+
+그런데 
+
+$ roslaunch turtlebot3_bringup turtlebot3_robot.launch
+
+이거를 에러가 나도 3번 정도는 시도해 봐야한다.
+
+
+
+
+
+이와 같은 내용은 이미 로보티즈에 질문이 되었지만
+	https://www.robotis.com/service/forum_view.php?bbs_no=2589777&slg=&page_type=&mode=&submode=
+답변이 그지 같은 상황이다
+
+
+
+
+
+
+
+또한 
+
+Message from device dropped : message larger than buffer.
+
+이런 에러가 뜨면 
+
+https://answers.ros.org/question/215076/message-from-ros-network-dropped-message-larger-than-buffer/  
+	
+	-여기와
+
+https://answers.ros.org/question/73627/how-to-increase-rosserial-buffer-size/
+
+	-여기를 참고하자
+
+[Arduino Libraries] ---> ros_lib ---> ros.h 
+
+[Arduino Libraries] ---> ros_lib ---> ros ---> node_handle.h
+
+
+
+
+
+
+ros.h 파일에서
+
+#elif defined(__AVR_ATmega2560__)
+
+  typedef NodeHandle_<ArduinoHardware, 15, 15, 512, 1024> NodeHandle;
+
+이 부분을 바꾸고
+
+
+node_handle.h  파일에서
+
+namespace ros {
+
+  using rosserial_msgs::TopicInfo;
+
+  /* Node Handle */
+  template<class Hardware,
+           int MAX_SUBSCRIBERS=25,
+           int MAX_PUBLISHERS=25,
+           int INPUT_SIZE=512,
+           int OUTPUT_SIZE=512>
+  class NodeHandle_ : public NodeHandleBase_
+  {
+
+이렇게 바꾼다.
+
+
+
+
+
+
+
+
+
+
+
+이렇게 하다가도 종종 포트는 잡히지만 아두이노 IDE에서 업로드가 막히는 경우가 있다 
+
+이럴 때
+
+ 
+
+opencr_ld ver 1.0.2
+opencr_ld_main 
+>>
+file name : /tmp/arduino_build_324933/turtlebot3_core.ino.bin 
+file size : 171 KB
+Open port OK
+Clear Buffer Start
+Clear Buffer End
+>>
+cmd_read_board_name fail : 0xF020
+
+ 
+
+ 
+ Arduino IDE에서는 위와 같은 에러가 뜨면서 펌웨어 업로드가 실패한다.
+
+이때는 
+
+http://cafe.naver.com/openrt/15439
+
+	-여기를 참고하자
+
+
+여기서 하라는대로 SW2와 RESET버튼을 누르면		-- 링크내 동영상 참조
+
+led가 빠르게 깜빡일 것이다.
+
+이러고 다시 opencr보드에 파일을 업로드 해보자
+
+
+
+
+
+
